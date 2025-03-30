@@ -38,6 +38,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             phone: currentSession.user.phone || currentSession.user.user_metadata.phone || '',
             avatar: currentSession.user.user_metadata.avatar_url || '',
             role: currentSession.user.user_metadata.role || 'patient',
+            specialization: currentSession.user.user_metadata.specialization,
+            experience: currentSession.user.user_metadata.experience,
+            bio: currentSession.user.user_metadata.bio,
+            address: currentSession.user.user_metadata.address,
           };
           setUser(appUser);
         } else {
@@ -59,6 +63,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           phone: currentSession.user.phone || currentSession.user.user_metadata.phone || '',
           avatar: currentSession.user.user_metadata.avatar_url || '',
           role: currentSession.user.user_metadata.role || 'patient',
+          specialization: currentSession.user.user_metadata.specialization,
+          experience: currentSession.user.user_metadata.experience,
+          bio: currentSession.user.user_metadata.bio,
+          address: currentSession.user.user_metadata.address,
         };
         setUser(appUser);
       }

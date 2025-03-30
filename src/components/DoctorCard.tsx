@@ -11,7 +11,8 @@ interface DoctorCardProps {
 }
 
 export function DoctorCard({ doctor, compact = false }: DoctorCardProps) {
-  const { id, name, specialization, rating, reviews, avatar, experience } = doctor;
+  const { id, name, specialization, specialty, rating, reviews, avatar, experience } = doctor;
+  const displaySpecialty = specialization || specialty || '';
   
   // Get initials for avatar fallback
   const getInitials = (name: string) => {
@@ -31,7 +32,7 @@ export function DoctorCard({ doctor, compact = false }: DoctorCardProps) {
         </Avatar>
         <div className="ml-3">
           <h3 className="font-medium text-gray-900">{name}</h3>
-          <p className="text-sm text-gray-500">{specialization}</p>
+          <p className="text-sm text-gray-500">{displaySpecialty}</p>
         </div>
       </Link>
     );
@@ -50,22 +51,22 @@ export function DoctorCard({ doctor, compact = false }: DoctorCardProps) {
           </Avatar>
           <div className="ml-4">
             <h3 className="font-medium text-gray-900">{name}</h3>
-            <p className="text-sm text-gray-500">{specialization}</p>
+            <p className="text-sm text-gray-500">{displaySpecialty}</p>
             
             <div className="flex items-center mt-1">
               <div className="flex items-center">
                 <Star size={16} className="text-yellow-400 fill-yellow-400" />
-                <span className="ml-1 text-sm font-medium">{rating}</span>
+                <span className="ml-1 text-sm font-medium">{rating || 0}</span>
               </div>
               <span className="mx-1 text-gray-300">•</span>
-              <span className="text-sm text-gray-500">{reviews} reviews</span>
+              <span className="text-sm text-gray-500">{reviews || 0} reviews</span>
             </div>
           </div>
         </div>
         
         <div className="mt-4 flex items-center justify-between">
           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-            {experience}
+            {experience || "New Doctor"}
           </Badge>
           <span className="text-primary font-medium">View Profile</span>
         </div>

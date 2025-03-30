@@ -1,20 +1,16 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
-import { Button } from "@/components/ui/button";
-import { Bell, Calendar, CreditCard, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
+import { ArrowRight } from "lucide-react";
+import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
-import { getUserNotifications } from "@/data/mockData";
+import { getUserNotifications } from "@/data/mockUtilities";
 import { Notification } from "@/types";
 
-export default function Notifications() {
+const Notifications = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   
   const notifications = getUserNotifications(user?.id || "");
   
-  // Mark notifications as read (in a real app, this would call an API)
   const handleNotificationClick = (notification: Notification) => {
     if (notification.type === "appointment" && notification.relatedId) {
       navigate("/appointments");
@@ -25,13 +21,11 @@ export default function Notifications() {
     }
   };
   
-  // Format timestamp for display
   const formatTimestamp = (timestamp: string) => {
     try {
       const date = new Date(timestamp);
       const now = new Date();
       
-      // If today, display time
       if (
         date.getDate() === now.getDate() &&
         date.getMonth() === now.getMonth() &&
@@ -40,7 +34,6 @@ export default function Notifications() {
         return format(date, "h:mm a");
       }
       
-      // If yesterday
       const yesterday = new Date(now);
       yesterday.setDate(now.getDate() - 1);
       if (
@@ -51,7 +44,6 @@ export default function Notifications() {
         return "Yesterday";
       }
       
-      // Otherwise, display date
       return format(date, "MMM d");
     } catch (e) {
       return timestamp;
@@ -108,4 +100,6 @@ export default function Notifications() {
       </div>
     </AppLayout>
   );
-}
+};
+
+export default Notifications;

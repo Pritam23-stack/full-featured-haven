@@ -3,7 +3,7 @@ import { ArrowLeft, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { getUserNotifications } from "@/data/mockData";
+import { getUserNotifications } from "@/data/mockUtilities";
 
 interface PageHeaderProps {
   title: string;

@@ -1,168 +1,224 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { RoleSelector } from "@/components/auth/RoleSelector";
 
-export default function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState<'patient' | 'doctor' | 'admin'>('patient');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { register } = useAuth();
+const formSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  phone: z.string().min(10, { message: "Phone number must be at least 10 characters." }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+const Register = () => {
   const navigate = useNavigate();
+  const { register: registerUser } = useAuth();
   const { toast } = useToast();
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<'patient' | 'doctor' | 'admin'>('patient');
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const onSubmit = async (data: FormData) => {
     try {
-      await register(name, email, password, phone, role);
+      setIsSubmitting(true);
+      
+      await registerUser(
+        data.name,
+        data.email,
+        data.password,
+        data.phone,
+        selectedRole
+      );
+      
       toast({
-        title: "Account created",
-        description: "Your account has been created successfully. Please check your email to verify your account.",
+        title: "Registration successful",
+        description: selectedRole === 'patient' 
+          ? "Welcome to Kabiraj! You have successfully registered."
+          : `Thank you for registering as a ${selectedRole}. Your account will be verified soon.`,
       });
-      navigate("/otp-verification");
+      
+      navigate('/otp-verification');
     } catch (error: any) {
-      console.error(error);
+      console.error("Registration error:", error);
+      
       toast({
         variant: "destructive",
         title: "Registration failed",
-        description: error.message || "There was an error creating your account. Please try again.",
+        description: error.error_description || error.message || "An error occurred during registration. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      {/* Header */}
-      <div className="p-4">
-        <button
-          onClick={() => navigate("/")}
-          className="text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeft size={24} />
-        </button>
-      </div>
-      
-      {/* Content */}
-      <div className="flex-1 flex flex-col p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">Create Account</h1>
-          <p className="text-gray-500">Sign up to get started</p>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="Enter your full name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="py-6"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="py-6"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="Enter your phone number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-              className="py-6"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="role">I am a</Label>
-            <Select 
-              value={role} 
-              onValueChange={(value: 'patient' | 'doctor' | 'admin') => setRole(value)}
-            >
-              <SelectTrigger className="py-6">
-                <SelectValue placeholder="Select your role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="patient">Patient</SelectItem>
-                <SelectItem value="doctor">Doctor</SelectItem>
-                <SelectItem value="admin">Administrator</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Create a password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="py-6"
-            />
-            <p className="text-xs text-gray-500">
-              Password must be at least 6 characters
+    <div className="flex min-h-screen flex-col">
+      <div className="flex-1 flex flex-col justify-center items-center p-6">
+        <div className="w-full max-w-md space-y-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold tracking-tight">Create an Account</h1>
+            <p className="mt-2 text-sm text-gray-500">
+              Join the Kabiraj healthcare platform
             </p>
           </div>
-          
-          <div className="pt-2">
-            <Button type="submit" disabled={isSubmitting} className="w-full py-6 text-base">
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Sign Up"
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="your@email.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+123456789" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          {...field}
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          {...field}
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <RoleSelector selectedRole={selectedRole} onChange={setSelectedRole} />
+
+              {selectedRole === 'doctor' && (
+                <div className="text-xs text-gray-500">
+                  As a doctor, you'll need to complete your profile with specialization and professional details after registration.
+                </div>
               )}
-            </Button>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Creating Account..." : "Create Account"}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="text-center text-sm">
+            Already have an account?{" "}
+            <Link to="/login" className="text-primary font-medium">
+              Sign In
+            </Link>
           </div>
-        </form>
-        
-        <p className="mt-6 text-center text-gray-500">
-          Already have an account?{" "}
-          <Link to="/login" className="text-primary hover:underline">
-            Log In
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default Register;

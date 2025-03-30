@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, Loader2, MapPin, Search, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -13,30 +12,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-
-interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
-}
-
-interface Doctor {
-  id: string;
-  name: string;
-  specialty: string;
-  address: string;
-  phone?: string;
-  website?: string;
-  rating?: string;
-  distance?: string;
-}
+import { ChatMessage, DoctorSearchResult } from "@/types";
 
 export default function AiAssistant() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       content: "Hello! I'm KABIRAJ AI. How can I assist you with your health concerns today?",
@@ -46,7 +28,7 @@ export default function AiAssistant() {
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [nearbyDoctors, setNearbyDoctors] = useState<Doctor[]>([]);
+  const [nearbyDoctors, setNearbyDoctors] = useState<DoctorSearchResult[]>([]);
   const [isSearchingDoctors, setIsSearchingDoctors] = useState(false);
   const [showPrescriptionUpload, setShowPrescriptionUpload] = useState(false);
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
@@ -65,7 +47,7 @@ export default function AiAssistant() {
     
     // Add user message
     const userMessageId = Date.now().toString();
-    const userMessage: Message = {
+    const userMessage: ChatMessage = {
       id: userMessageId,
       content: inputMessage,
       sender: 'user',
@@ -87,7 +69,7 @@ export default function AiAssistant() {
       if (error) throw error;
       
       // Add AI response
-      const aiMessage: Message = {
+      const aiMessage: ChatMessage = {
         id: Date.now().toString(),
         content: data.reply || "I'm sorry, I couldn't generate a response. Please try again.",
         sender: 'ai',
@@ -103,7 +85,7 @@ export default function AiAssistant() {
         (lowerCaseInput.includes("near") || lowerCaseInput.includes("nearby") || lowerCaseInput.includes("find"))
       ) {
         setTimeout(() => {
-          const followUpMessage: Message = {
+          const followUpMessage: ChatMessage = {
             id: Date.now().toString(),
             content: "Would you like me to help you find doctors in your area who specialize in treating this condition?",
             sender: 'ai',
@@ -122,7 +104,7 @@ export default function AiAssistant() {
       });
       
       // Add error message
-      const errorMessage: Message = {
+      const errorMessage: ChatMessage = {
         id: Date.now().toString(),
         content: "I'm sorry, I encountered an error. Please try again later.",
         sender: 'ai',
@@ -170,7 +152,7 @@ export default function AiAssistant() {
                 if (data.doctors && data.doctors.length > 0) {
                   setNearbyDoctors(data.doctors);
                   
-                  const successMessage: Message = {
+                  const successMessage: ChatMessage = {
                     id: Date.now().toString(),
                     content: `I've found several specialists who might be able to help you. Please see the list below.`,
                     sender: 'ai',
@@ -184,7 +166,7 @@ export default function AiAssistant() {
               } catch (error) {
                 console.error("Error finding doctors:", error);
                 
-                const errorMessage: Message = {
+                const errorMessage: ChatMessage = {
                   id: Date.now().toString(),
                   content: "I couldn't find any specialists in your area. Please try again or use our doctor search page.",
                   sender: 'ai',
@@ -253,7 +235,7 @@ export default function AiAssistant() {
       const fileUrl = data.publicUrl;
       
       // Add prescription message to chat
-      const prescriptionMessage: Message = {
+      const prescriptionMessage: ChatMessage = {
         id: Date.now().toString(),
         content: `I've uploaded my prescription: ${prescriptionNote || 'No notes provided'}`,
         sender: 'user',
@@ -263,7 +245,7 @@ export default function AiAssistant() {
       setMessages(prev => [...prev, prescriptionMessage]);
       
       // Response from AI confirming upload
-      const aiResponse: Message = {
+      const aiResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         content: "Your prescription has been uploaded. It will be shared with your doctor for review.",
         sender: 'ai',
