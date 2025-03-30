@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Clock, Search } from "lucide-react";
@@ -21,17 +22,8 @@ const Dashboard = () => {
   const [featuredSpecialties, setFeaturedSpecialties] = useState(specializations.slice(0, 4));
 
   useEffect(() => {
-    // Fetch data based on user role
-    if (user?.role === "patient") {
-      // Get patient dashboard data
-      // This would normally fetch from an API
-    } else if (user?.role === "doctor") {
-      // Redirect to doctor dashboard
-      navigate("/doctor/dashboard");
-    } else if (user?.role === "admin") {
-      // Redirect to admin dashboard
-      navigate("/admin/dashboard");
-    }
+    // Fetch data for patient dashboard
+    // This would normally fetch from an API
   }, [user, navigate]);
 
   const handleSearch = () => {

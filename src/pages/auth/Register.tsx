@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { RoleSelector } from "@/components/auth/RoleSelector";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -32,7 +31,6 @@ const Register = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<'patient' | 'doctor' | 'admin'>('patient');
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -53,15 +51,12 @@ const Register = () => {
         data.name,
         data.email,
         data.password,
-        data.phone,
-        selectedRole
+        data.phone
       );
       
       toast({
         title: "Registration successful",
-        description: selectedRole === 'patient' 
-          ? "Welcome to Kabiraj! You have successfully registered."
-          : `Thank you for registering as a ${selectedRole}. Your account will be verified soon.`,
+        description: "Welcome to Kabiraj! You have successfully registered."
       });
       
       navigate('/otp-verification');
@@ -190,14 +185,6 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-
-              <RoleSelector selectedRole={selectedRole} onChange={setSelectedRole} />
-
-              {selectedRole === 'doctor' && (
-                <div className="text-xs text-gray-500">
-                  As a doctor, you'll need to complete your profile with specialization and professional details after registration.
-                </div>
-              )}
 
               <Button
                 type="submit"

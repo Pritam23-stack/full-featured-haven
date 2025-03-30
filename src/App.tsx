@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -30,8 +30,6 @@ import Chat from "@/pages/Chat";
 import ChatDetail from "@/pages/ChatDetail";
 import Profile from "@/pages/Profile";
 import EditProfile from "@/pages/EditProfile";
-import DoctorDashboard from "@/pages/doctor/DoctorDashboard";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AiAssistant from "@/pages/AiAssistant";
 
 // 404 page
@@ -73,11 +71,11 @@ const App = () => (
               <Route path="/profile/edit" element={<EditProfile />} />
               <Route path="/ai-assistant" element={<AiAssistant />} />
               
-              {/* Doctor routes */}
-              <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+              {/* Doctor routes - commented out */}
+              {/* <Route path="/doctor/dashboard" element={<DoctorDashboard />} /> */}
               
-              {/* Admin routes */}
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              {/* Admin routes - commented out */}
+              {/* <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
             </Route>
             
             {/* 404 route */}
