@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Star, Bot } from "lucide-react";
@@ -21,7 +20,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Redirect to appropriate dashboard based on role
   useEffect(() => {
     if (user?.role === "doctor") {
       navigate("/doctor/dashboard");
@@ -35,20 +33,16 @@ export default function Dashboard() {
     new Date(apt.date) >= new Date() && apt.status !== 'cancelled'
   ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
-  // Get next appointment
   const nextAppointment = upcomingAppointments[0];
   
-  // Get doctor for next appointment
   const nextAppointmentDoctor = nextAppointment 
     ? doctors.find(doc => doc.id === nextAppointment.doctorId) 
     : null;
   
-  // Format date for display
   const formatAppointmentDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();
     
-    // Check if appointment is today
     if (
       date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
@@ -57,7 +51,6 @@ export default function Dashboard() {
       return "Today";
     }
     
-    // Check if appointment is tomorrow
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
     if (
@@ -68,7 +61,6 @@ export default function Dashboard() {
       return "Tomorrow";
     }
     
-    // Otherwise return formatted date
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric',
@@ -79,7 +71,6 @@ export default function Dashboard() {
   return (
     <AppLayout title="Home" showBack={false}>
       <div className="p-4">
-        {/* User greeting */}
         <div className="flex items-center mb-6">
           <Avatar className="h-12 w-12">
             <AvatarImage src={user?.avatar} alt={user?.name} />
@@ -91,7 +82,6 @@ export default function Dashboard() {
           </div>
         </div>
         
-        {/* AI Health Assistant card */}
         <Card className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -112,7 +102,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        {/* Search */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
@@ -123,7 +112,6 @@ export default function Dashboard() {
           />
         </div>
         
-        {/* Next appointment */}
         {nextAppointment && nextAppointmentDoctor && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-3">
@@ -169,7 +157,6 @@ export default function Dashboard() {
           </div>
         )}
         
-        {/* Specializations */}
         <div className="mb-6">
           <h3 className="font-semibold mb-3">Specializations</h3>
           <div className="grid grid-cols-4 gap-3">
@@ -197,7 +184,6 @@ export default function Dashboard() {
           </div>
         </div>
         
-        {/* Top Doctors */}
         <div>
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-semibold">Top Doctors</h3>
@@ -220,6 +206,26 @@ export default function Dashboard() {
             View More Doctors
           </Button>
         </div>
+        
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <Button
+              variant="ghost"
+              className="w-full h-full p-6 flex flex-col items-center justify-center space-y-2"
+              onClick={() => navigate("/ai-assistant")}
+            >
+              <div className="bg-primary/10 p-3 rounded-full">
+                <Bot className="h-6 w-6 text-primary" />
+              </div>
+              <CardTitle className="text-center text-base font-medium">
+                KABIRAJ AI Assistant
+              </CardTitle>
+              <p className="text-center text-sm text-muted-foreground">
+                Chat with our AI for health concerns
+              </p>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );

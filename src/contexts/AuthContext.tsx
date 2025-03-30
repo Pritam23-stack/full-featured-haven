@@ -9,7 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, phone: string) => Promise<void>;
+  register: (name: string, email: string, password: string, phone: string, role?: 'patient' | 'doctor' | 'admin') => Promise<void>;
   logout: () => Promise<void>;
   verifyOTP: (otp: string) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<void>;
@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: currentSession.user.email || '',
             phone: currentSession.user.phone || currentSession.user.user_metadata.phone || '',
             avatar: currentSession.user.user_metadata.avatar_url || '',
-            role: currentSession.user.user_metadata.role || 'patient', // Add the role with default value
+            role: currentSession.user.user_metadata.role || 'patient',
           };
           setUser(appUser);
         } else {
@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: currentSession.user.email || '',
           phone: currentSession.user.phone || currentSession.user.user_metadata.phone || '',
           avatar: currentSession.user.user_metadata.avatar_url || '',
-          role: currentSession.user.user_metadata.role || 'patient', // Add the role with default value
+          role: currentSession.user.user_metadata.role || 'patient',
         };
         setUser(appUser);
       }
@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string, phone: string) => {
+  const register = async (name: string, email: string, password: string, phone: string, role: 'patient' | 'doctor' | 'admin' = 'patient') => {
     setIsLoading(true);
     
     try {
@@ -102,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             name,
             phone,
+            role,
           }
         }
       });

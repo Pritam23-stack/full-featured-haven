@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -6,12 +5,6 @@ export interface User {
   phone: string;
   avatar?: string;
   role: 'patient' | 'doctor' | 'admin';
-  specialization?: string;
-  experience?: string;
-  rating?: number;
-  reviews?: number;
-  about?: string;
-  address?: string;
 }
 
 export interface Appointment {

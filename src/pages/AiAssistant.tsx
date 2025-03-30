@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Send, Bot, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Send, Bot, Loader2, MapPin, Search, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
@@ -9,12 +9,27 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 
 interface Message {
   id: string;
   content: string;
   sender: 'user' | 'ai';
   timestamp: Date;
+}
+
+interface Doctor {
+  id: string;
+  name: string;
+  specialty: string;
+  address: string;
+  phone?: string;
+  website?: string;
+  rating?: string;
+  distance?: string;
 }
 
 export default function AiAssistant() {
@@ -31,13 +46,27 @@ export default function AiAssistant() {
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [nearbyDoctors, setNearbyDoctors] = useState<Doctor[]>([]);
+  const [isSearchingDoctors, setIsSearchingDoctors] = useState(false);
+  const [showPrescriptionUpload, setShowPrescriptionUpload] = useState(false);
+  const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
+  const [prescriptionNote, setPrescriptionNote] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState<string | null>(null);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, nearbyDoctors]);
   
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
     
     // Add user message
+    const userMessageId = Date.now().toString();
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: userMessageId,
       content: inputMessage,
       sender: 'user',
       timestamp: new Date()
@@ -47,52 +76,32 @@ export default function AiAssistant() {
     setInputMessage("");
     setIsLoading(true);
     
-    // Mock AI response (in a real app, this would call an API)
-    setTimeout(() => {
-      // Example AI response based on user input
-      let response = "I'm sorry, I don't understand. Can you please provide more details about your symptoms?";
+    try {
+      // Call Supabase Edge Function for Gemini AI
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
+        body: {
+          messages: [...messages, userMessage]
+        }
+      });
       
-      const lowerCaseInput = inputMessage.toLowerCase();
-      
-      // Simple pattern matching for symptoms
-      if (
-        lowerCaseInput.includes("headache") || 
-        lowerCaseInput.includes("head") && lowerCaseInput.includes("pain")
-      ) {
-        response = "Headaches can be caused by various factors including stress, dehydration, lack of sleep, or more serious conditions. Try drinking water, resting, and if the pain persists for more than a day or is severe, I recommend consulting with a neurologist.";
-      } else if (
-        lowerCaseInput.includes("fever") || 
-        lowerCaseInput.includes("temperature")
-      ) {
-        response = "A fever is often a sign that your body is fighting an infection. Rest, stay hydrated, and take over-the-counter fever reducers if needed. If your temperature exceeds 103°F (39.4°C) or lasts more than three days, please consult with a general physician.";
-      } else if (
-        lowerCaseInput.includes("cough") || 
-        lowerCaseInput.includes("cold") ||
-        lowerCaseInput.includes("congestion")
-      ) {
-        response = "Coughs and colds are usually caused by viral infections. Rest, drink fluids, and use over-the-counter cold medications if needed. If symptoms persist for more than a week or are severe, you should consult with a respiratory specialist.";
-      } else if (
-        lowerCaseInput.includes("stomach") || 
-        lowerCaseInput.includes("abdomen") ||
-        lowerCaseInput.includes("nausea") ||
-        lowerCaseInput.includes("vomit")
-      ) {
-        response = "Stomach issues can be caused by food poisoning, indigestion, or more serious conditions. Try eating bland foods, staying hydrated, and if symptoms persist or are severe, please consult with a gastroenterologist.";
-      }
+      if (error) throw error;
       
       // Add AI response
       const aiMessage: Message = {
         id: Date.now().toString(),
-        content: response,
+        content: data.reply || "I'm sorry, I couldn't generate a response. Please try again.",
         sender: 'ai',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, aiMessage]);
-      setIsLoading(false);
       
-      // If this is the second user message, suggest finding doctors
-      if (messages.filter(m => m.sender === 'user').length === 1) {
+      // Check if the message is asking about finding doctors
+      const lowerCaseInput = inputMessage.toLowerCase();
+      if (
+        (lowerCaseInput.includes("doctor") || lowerCaseInput.includes("specialist")) &&
+        (lowerCaseInput.includes("near") || lowerCaseInput.includes("nearby") || lowerCaseInput.includes("find"))
+      ) {
         setTimeout(() => {
           const followUpMessage: Message = {
             id: Date.now().toString(),
@@ -101,9 +110,29 @@ export default function AiAssistant() {
             timestamp: new Date()
           };
           setMessages(prev => [...prev, followUpMessage]);
-        }, 2000);
+        }, 1000);
       }
-    }, 2000);
+      
+    } catch (error) {
+      console.error("Error calling AI:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to get a response from the AI assistant. Please try again."
+      });
+      
+      // Add error message
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        content: "I'm sorry, I encountered an error. Please try again later.",
+        sender: 'ai',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -120,23 +149,64 @@ export default function AiAssistant() {
       action: (
         <Button onClick={() => {
           navigator.geolocation.getCurrentPosition(
-            (position) => {
-              // Mock finding doctors near user location
-              toast({
-                title: "Doctors found near you",
-                description: "We've found several specialists in your area.",
-              });
+            async (position) => {
+              setIsSearchingDoctors(true);
               
-              // In a real app, this would use the position to query an API
-              setTimeout(() => {
-                navigate('/doctors');
-              }, 1500);
+              try {
+                // Extract health condition from messages
+                const lastFewMessages = messages.slice(-5);
+                const userMessages = lastFewMessages.filter(m => m.sender === 'user').map(m => m.content).join(" ");
+                
+                // Get specialty from messages
+                const { data, error } = await supabase.functions.invoke('gemini-chat', {
+                  body: {
+                    searchDoctors: userMessages,
+                    location: `${position.coords.latitude},${position.coords.longitude}`
+                  }
+                });
+                
+                if (error) throw error;
+                
+                if (data.doctors && data.doctors.length > 0) {
+                  setNearbyDoctors(data.doctors);
+                  
+                  const successMessage: Message = {
+                    id: Date.now().toString(),
+                    content: `I've found several specialists who might be able to help you. Please see the list below.`,
+                    sender: 'ai',
+                    timestamp: new Date()
+                  };
+                  
+                  setMessages(prev => [...prev, successMessage]);
+                } else {
+                  throw new Error("No doctors found nearby");
+                }
+              } catch (error) {
+                console.error("Error finding doctors:", error);
+                
+                const errorMessage: Message = {
+                  id: Date.now().toString(),
+                  content: "I couldn't find any specialists in your area. Please try again or use our doctor search page.",
+                  sender: 'ai',
+                  timestamp: new Date()
+                };
+                
+                setMessages(prev => [...prev, errorMessage]);
+                
+                toast({
+                  variant: "destructive",
+                  title: "Search failed",
+                  description: "We couldn't find doctors in your area. Please try again."
+                });
+              } finally {
+                setIsSearchingDoctors(false);
+              }
             },
             (error) => {
               toast({
                 variant: "destructive",
                 title: "Location access denied",
-                description: "We couldn't access your location. Please enable location services and try again.",
+                description: "We couldn't access your location. Please enable location services and try again."
               });
             }
           );
@@ -145,6 +215,80 @@ export default function AiAssistant() {
         </Button>
       ),
     });
+  };
+  
+  const handleFileSelect = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setPrescriptionFile(e.target.files[0]);
+      setShowPrescriptionUpload(true);
+    }
+  };
+  
+  const handleUploadPrescription = async () => {
+    if (!prescriptionFile || !user) return;
+    
+    try {
+      const fileExt = prescriptionFile.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `prescriptions/${fileName}`;
+      
+      // Upload file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('medical-files')
+        .upload(filePath, prescriptionFile);
+      
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data } = supabase.storage
+        .from('medical-files')
+        .getPublicUrl(filePath);
+      
+      const fileUrl = data.publicUrl;
+      
+      // Add prescription message to chat
+      const prescriptionMessage: Message = {
+        id: Date.now().toString(),
+        content: `I've uploaded my prescription: ${prescriptionNote || 'No notes provided'}`,
+        sender: 'user',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, prescriptionMessage]);
+      
+      // Response from AI confirming upload
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Your prescription has been uploaded. It will be shared with your doctor for review.",
+        sender: 'ai',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, aiResponse]);
+      
+      toast({
+        title: "Prescription uploaded",
+        description: "Your prescription has been successfully uploaded."
+      });
+      
+      // Reset the form
+      setShowPrescriptionUpload(false);
+      setPrescriptionFile(null);
+      setPrescriptionNote("");
+    } catch (error) {
+      console.error("Error uploading prescription:", error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: "We couldn't upload your prescription. Please try again."
+      });
+    }
   };
   
   return (
@@ -191,6 +335,8 @@ export default function AiAssistant() {
                 </div>
               </div>
             )}
+            
+            <div ref={messagesEndRef} />
           </div>
           
           {messages.some(m => 
@@ -201,17 +347,83 @@ export default function AiAssistant() {
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <p>Find specialists in your area</p>
-                  <Button onClick={handleFindDoctorsNearby}>
-                    Find Nearby Doctors
+                  <Button onClick={handleFindDoctorsNearby} disabled={isSearchingDoctors}>
+                    {isSearchingDoctors ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Searching...
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="mr-2 h-4 w-4" />
+                        Find Nearby Doctors
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardContent>
             </Card>
           )}
+          
+          {nearbyDoctors.length > 0 && (
+            <div className="mt-4">
+              <h3 className="font-medium mb-2">Doctors near you:</h3>
+              <div className="space-y-3">
+                {nearbyDoctors.map((doctor, index) => (
+                  <Card key={index} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between">
+                        <div>
+                          <h4 className="font-medium">{doctor.name}</h4>
+                          <p className="text-sm text-gray-600">{doctor.specialty}</p>
+                          <p className="text-sm text-gray-600">{doctor.address}</p>
+                          {doctor.phone && (
+                            <p className="text-sm text-gray-600">{doctor.phone}</p>
+                          )}
+                          <div className="flex space-x-2 mt-2">
+                            <Badge variant="outline" className="text-xs">
+                              {doctor.rating ? `${doctor.rating} ★` : 'No rating'}
+                            </Badge>
+                            {doctor.distance && (
+                              <Badge variant="outline" className="text-xs">
+                                {doctor.distance}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          onClick={() => navigate(`/doctors/${doctor.id || index}`)}
+                        >
+                          View Profile
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         
         <div className="p-4 border-t bg-white">
           <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={handleFileSelect}
+              className="shrink-0"
+              title="Upload Prescription"
+            >
+              <Upload className="h-4 w-4" />
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".pdf,.jpg,.jpeg,.png"
+                className="hidden"
+              />
+            </Button>
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
@@ -230,6 +442,42 @@ export default function AiAssistant() {
           </div>
         </div>
       </div>
+      
+      {/* Prescription Upload Dialog */}
+      <Dialog open={showPrescriptionUpload} onOpenChange={setShowPrescriptionUpload}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload Prescription</DialogTitle>
+            <DialogDescription>
+              This prescription will be shared with your doctor.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                {prescriptionFile?.name}
+              </div>
+            </div>
+            
+            <Textarea
+              placeholder="Add notes about your prescription..."
+              value={prescriptionNote}
+              onChange={(e) => setPrescriptionNote(e.target.value)}
+              rows={3}
+            />
+            
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setShowPrescriptionUpload(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUploadPrescription}>
+                Upload
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
