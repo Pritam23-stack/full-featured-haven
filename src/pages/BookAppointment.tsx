@@ -41,7 +41,6 @@ const BookAppointment = () => {
       return;
     }
     
-    // In a real app, you would send this data to your backend
     const appointmentData = {
       doctorId,
       date: format(date, 'yyyy-MM-dd'),
@@ -52,7 +51,6 @@ const BookAppointment = () => {
     
     console.log("Appointment Data:", appointmentData);
     
-    // Redirect to confirmation page
     navigate("/appointment-confirmation");
   };
   
@@ -124,7 +122,11 @@ const BookAppointment = () => {
           <h3 className="text-xl font-semibold mb-4">
             Appointment Type
           </h3>
-          <RadioGroup defaultValue={appointmentType} onValueChange={setAppointmentType} className="flex space-x-2">
+          <RadioGroup 
+            defaultValue={appointmentType} 
+            onValueChange={(value: 'online' | 'in-person') => setAppointmentType(value)} 
+            className="flex space-x-2"
+          >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="online" id="r1" />
               <Label htmlFor="r1">Online</Label>

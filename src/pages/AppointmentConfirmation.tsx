@@ -1,4 +1,3 @@
-
 import { useLocation, useNavigate } from "react-router-dom";
 import { Calendar, Check, MapPin, Video } from "lucide-react";
 import { format } from "date-fns";
@@ -55,6 +54,9 @@ export default function AppointmentConfirmation() {
     );
   }
   
+  // Use specialty as fallback for specialization
+  const doctorSpecialization = doctor.specialty || "";
+  
   // Handler for payment
   const handleProceedToPayment = () => {
     // In a real app, this would create an appointment and redirect to payment
@@ -85,7 +87,7 @@ export default function AppointmentConfirmation() {
               
               <div className="ml-3">
                 <h2 className="font-semibold">{doctor.name}</h2>
-                <p className="text-gray-500">{doctor.specialization}</p>
+                <p className="text-gray-500">{doctorSpecialization}</p>
               </div>
             </div>
             

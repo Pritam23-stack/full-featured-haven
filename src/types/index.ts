@@ -94,6 +94,7 @@ export interface ChatMessage {
 
 // Doctor search result interface
 export interface DoctorSearchResult {
+  id?: string; // Adding optional id property
   name: string;
   specialty: string;
   address: string;

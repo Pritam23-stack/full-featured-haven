@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { CreditCard, CheckCircle2 } from "lucide-react";
+import { CreditCard, CheckCircle2, Plus, Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -8,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserPaymentMethods } from "@/data/mockUtilities";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 const PaymentCheckout = () => {
   const { appointmentId } = useParams<{ appointmentId: string }>();

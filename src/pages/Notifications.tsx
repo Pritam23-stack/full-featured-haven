@@ -1,5 +1,6 @@
 import { format } from "date-fns";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Bell, Calendar, MessageSquare, CreditCard } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserNotifications } from "@/data/mockUtilities";
