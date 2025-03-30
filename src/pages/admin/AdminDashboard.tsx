@@ -1,38 +1,32 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Users, Calendar, Activity, UserCheck, AlertCircle, Search } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useAuth } from "@/contexts/AuthContext";
-import { getAllUsers } from "@/data/mockUtilities";
+import { getAllDoctors, getAllUsers } from "@/data/mockData";
 
-const AdminDashboard = () => {
+export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [doctors, setDoctors] = useState([]);
-  const [patients, setPatients] = useState([]);
-  const [appointments, setAppointments] = useState([]);
-  const [filterQuery, setFilterQuery] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [doctors, setDoctors] = useState(getAllDoctors());
+  const [patients, setPatients] = useState(
+    getAllUsers().filter(u => u.role === "patient")
+  );
   
   useEffect(() => {
-    if (user && user.role === "admin") {
-      // Fetch all users
-      const users = getAllUsers();
-      setDoctors(users.filter(u => u.role === "doctor"));
-      setPatients(users.filter(u => u.role === "patient"));
-      // This would normally fetch from an API
+    // Redirect if not an admin
+    if (user?.role !== "admin") {
+      navigate("/dashboard");
     }
-  }, [user]);
-
+  }, [user, navigate]);
+  
   return (
     <AppLayout title="Admin Dashboard" showBack={false}>
       <div className="p-4">
@@ -227,6 +221,4 @@ const AdminDashboard = () => {
       </div>
     </AppLayout>
   );
-};
-
-export default AdminDashboard;
+}

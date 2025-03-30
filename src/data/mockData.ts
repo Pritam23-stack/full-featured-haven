@@ -1,192 +1,343 @@
-export const getAllDoctors = () => {
-  // In a real app, this would come from an API call to the backend
-  return [
-    {
-      id: "doctor1",
-      name: "Dr. John Smith",
-      specialty: "Cardiologist",
-      avatar: "/placeholder.svg",
-      bio: "Dr. Smith is a board-certified cardiologist with over 10 years of experience.",
-      location: "New York, NY",
-      availability: "Mon-Fri, 9am-5pm",
-      rating: 4.5,
-      reviews: 120,
-      phone: "+1234567890",
-      address: "123 Main St, New York, NY 10001",
-    },
-    {
-      id: "doctor2",
-      name: "Dr. Emily Johnson",
-      specialty: "Dermatologist",
-      avatar: "/placeholder.svg",
-      bio: "Dr. Johnson is a board-certified dermatologist specializing in skin cancer and cosmetic dermatology.",
-      location: "Los Angeles, CA",
-      availability: "Tue-Sat, 10am-6pm",
-      rating: 4.8,
-      reviews: 155,
-      phone: "+1987654321",
-      address: "456 Elm St, Los Angeles, CA 90001",
-    },
-    {
-      id: "doctor3",
-      name: "Dr. Michael Brown",
-      specialty: "Pediatrician",
-      avatar: "/placeholder.svg",
-      bio: "Dr. Brown is a board-certified pediatrician with a passion for helping children grow and thrive.",
-      location: "Chicago, IL",
-      availability: "Mon-Fri, 8am-4pm",
-      rating: 4.2,
-      reviews: 90,
-      phone: "+1122334455",
-      address: "789 Oak St, Chicago, IL 60601",
-    },
-    {
-      id: "doctor4",
-      name: "Dr. Sarah Williams",
-      specialty: "Neurologist",
-      avatar: "/placeholder.svg",
-      bio: "Dr. Williams is a board-certified neurologist specializing in the diagnosis and treatment of neurological disorders.",
-      location: "Houston, TX",
-      availability: "Wed-Sun, 11am-7pm",
-      rating: 4.9,
-      reviews: 180,
-      phone: "+1555666777",
-      address: "101 Pine St, Houston, TX 77001",
-    },
-  ];
+
+import { Appointment, DoctorSpecialization, Message, Notification, PaymentMethod, Review, TimeSlot, User } from "@/types";
+
+// Doctor specializations
+export const specializations: DoctorSpecialization[] = [
+  { id: "1", name: "General", icon: "stethoscope" },
+  { id: "2", name: "Cardiology", icon: "heart" },
+  { id: "3", name: "Pediatric", icon: "baby" },
+  { id: "4", name: "Dermatology", icon: "shield" },
+  { id: "5", name: "Neurology", icon: "brain" },
+  { id: "6", name: "Orthopedic", icon: "bone" },
+  { id: "7", name: "Ophthalmology", icon: "eye" },
+  { id: "8", name: "Dentistry", icon: "tooth" },
+];
+
+// Users (Doctors and Patients)
+export const users: User[] = [
+  {
+    id: "1",
+    name: "Dr. Sarah Johnson",
+    email: "sarah.johnson@example.com",
+    phone: "+1 (555) 123-4567",
+    avatar: "/lovable-uploads/doctor1.png",
+    role: "doctor",
+    specialization: "Cardiology",
+    experience: "10 years",
+    rating: 4.8,
+    reviews: 125,
+    about: "Dr. Sarah Johnson is a board-certified cardiologist with over 10 years of experience. She specializes in cardiovascular diseases and preventive cardiology.",
+    address: "123 Medical Center, New York, NY"
+  },
+  {
+    id: "2",
+    name: "Dr. Michael Chen",
+    email: "michael.chen@example.com",
+    phone: "+1 (555) 987-6543",
+    avatar: "/lovable-uploads/doctor2.png",
+    role: "doctor",
+    specialization: "Neurology",
+    experience: "15 years",
+    rating: 4.9,
+    reviews: 215,
+    about: "Dr. Michael Chen is a renowned neurologist specializing in neurological disorders and neuromuscular diseases. He has published numerous papers in the field.",
+    address: "456 Health Avenue, Boston, MA"
+  },
+  {
+    id: "3",
+    name: "Dr. Emily Martinez",
+    email: "emily.martinez@example.com",
+    phone: "+1 (555) 456-7890",
+    avatar: "/lovable-uploads/doctor3.png",
+    role: "doctor",
+    specialization: "Pediatric",
+    experience: "8 years",
+    rating: 4.7,
+    reviews: 98,
+    about: "Dr. Emily Martinez is a compassionate pediatrician dedicated to providing high-quality care for children from birth through adolescence.",
+    address: "789 Care Lane, Chicago, IL"
+  },
+  {
+    id: "4",
+    name: "Dr. James Wilson",
+    email: "james.wilson@example.com",
+    phone: "+1 (555) 789-0123",
+    avatar: "/lovable-uploads/doctor4.png",
+    role: "doctor",
+    specialization: "Dermatology",
+    experience: "12 years",
+    rating: 4.6,
+    reviews: 156,
+    about: "Dr. James Wilson is a dermatologist specializing in skin conditions, cosmetic dermatology, and dermatologic surgery.",
+    address: "101 Skin Street, Los Angeles, CA"
+  },
+  {
+    id: "5",
+    name: "Dr. Olivia Thompson",
+    email: "olivia.thompson@example.com",
+    phone: "+1 (555) 234-5678",
+    avatar: "/lovable-uploads/doctor5.png",
+    role: "doctor",
+    specialization: "Orthopedic",
+    experience: "14 years",
+    rating: 4.9,
+    reviews: 178,
+    about: "Dr. Olivia Thompson is a skilled orthopedic surgeon specializing in sports injuries, joint replacements, and minimally invasive surgery.",
+    address: "202 Bone Boulevard, Denver, CO"
+  },
+  {
+    id: "user1",
+    name: "John Smith",
+    email: "john.smith@example.com",
+    phone: "+1 (555) 111-2222",
+    avatar: "/lovable-uploads/patient1.png",
+    role: "patient",
+    address: "567 Home Avenue, Seattle, WA"
+  }
+];
+
+// Current logged in user (for demo purposes)
+export const currentUser: User = users.find(user => user.id === "user1")!;
+
+// Appointments
+export const appointments: Appointment[] = [
+  {
+    id: "apt1",
+    doctorId: "1",
+    patientId: "user1",
+    date: "2023-11-15",
+    time: "10:00 AM",
+    status: "confirmed",
+    type: "online",
+    reason: "Annual checkup",
+    paymentStatus: "completed",
+    paymentAmount: 150
+  },
+  {
+    id: "apt2",
+    doctorId: "3",
+    patientId: "user1",
+    date: "2023-11-22",
+    time: "2:30 PM",
+    status: "pending",
+    type: "in-person",
+    reason: "Follow-up consultation",
+    paymentStatus: "pending",
+    paymentAmount: 200
+  },
+  {
+    id: "apt3",
+    doctorId: "2",
+    patientId: "user1",
+    date: "2023-12-05",
+    time: "9:15 AM",
+    status: "confirmed",
+    type: "online",
+    reason: "Migraine consultation",
+    paymentStatus: "completed",
+    paymentAmount: 175
+  }
+];
+
+// Reviews
+export const reviews: Review[] = [
+  {
+    id: "rev1",
+    doctorId: "1",
+    patientId: "user1",
+    rating: 5,
+    comment: "Dr. Johnson was very thorough and patient. She explained everything clearly.",
+    date: "2023-10-15"
+  },
+  {
+    id: "rev2",
+    doctorId: "2",
+    patientId: "user1",
+    rating: 4,
+    comment: "Great doctor, but had to wait a bit longer than expected for my appointment.",
+    date: "2023-09-20"
+  }
+];
+
+// Messages
+export const messages: Message[] = [
+  {
+    id: "msg1",
+    senderId: "1",
+    receiverId: "user1",
+    content: "Hello John, I've reviewed your test results. Everything looks normal, but I'd like to discuss a few things during our next appointment.",
+    timestamp: "2023-11-10T14:30:00Z",
+    read: true
+  },
+  {
+    id: "msg2",
+    senderId: "user1",
+    receiverId: "1",
+    content: "Thank you, Dr. Johnson. Is there anything I should prepare for our discussion?",
+    timestamp: "2023-11-10T14:35:00Z",
+    read: true
+  },
+  {
+    id: "msg3",
+    senderId: "1",
+    receiverId: "user1",
+    content: "Just bring any questions you might have. We'll go through everything together during the appointment.",
+    timestamp: "2023-11-10T14:40:00Z",
+    read: false
+  },
+  {
+    id: "msg4",
+    senderId: "3",
+    receiverId: "user1",
+    content: "Hi John, just a reminder that your appointment is scheduled for tomorrow at 2:30 PM. Please arrive 15 minutes early to complete any paperwork.",
+    timestamp: "2023-11-21T09:00:00Z",
+    read: false
+  }
+];
+
+// Notifications
+export const notifications: Notification[] = [
+  {
+    id: "notif1",
+    userId: "user1",
+    title: "Appointment Reminder",
+    message: "Your appointment with Dr. Sarah Johnson is tomorrow at 10:00 AM.",
+    timestamp: "2023-11-14T10:00:00Z",
+    read: false,
+    type: "appointment",
+    relatedId: "apt1"
+  },
+  {
+    id: "notif2",
+    userId: "user1",
+    title: "New Message",
+    message: "You have a new message from Dr. Sarah Johnson.",
+    timestamp: "2023-11-10T14:40:00Z",
+    read: true,
+    type: "message",
+    relatedId: "msg3"
+  },
+  {
+    id: "notif3",
+    userId: "user1",
+    title: "Payment Received",
+    message: "Your payment of $150 for appointment #apt1 has been processed.",
+    timestamp: "2023-11-08T15:20:00Z",
+    read: true,
+    type: "payment",
+    relatedId: "apt1"
+  }
+];
+
+// Time slots
+export const timeSlots: TimeSlot[] = [
+  { id: "ts1", doctorId: "1", time: "9:00 AM", date: "2023-11-20", isAvailable: true },
+  { id: "ts2", doctorId: "1", time: "10:00 AM", date: "2023-11-20", isAvailable: true },
+  { id: "ts3", doctorId: "1", time: "11:00 AM", date: "2023-11-20", isAvailable: false },
+  { id: "ts4", doctorId: "1", time: "1:00 PM", date: "2023-11-20", isAvailable: true },
+  { id: "ts5", doctorId: "1", time: "2:00 PM", date: "2023-11-20", isAvailable: true },
+  { id: "ts6", doctorId: "1", time: "3:00 PM", date: "2023-11-20", isAvailable: false },
+  { id: "ts7", doctorId: "1", time: "9:00 AM", date: "2023-11-21", isAvailable: true },
+  { id: "ts8", doctorId: "1", time: "10:00 AM", date: "2023-11-21", isAvailable: false },
+  { id: "ts9", doctorId: "1", time: "11:00 AM", date: "2023-11-21", isAvailable: true },
+  { id: "ts10", doctorId: "1", time: "1:00 PM", date: "2023-11-21", isAvailable: true },
+  { id: "ts11", doctorId: "1", time: "2:00 PM", date: "2023-11-21", isAvailable: true },
+  { id: "ts12", doctorId: "1", time: "3:00 PM", date: "2023-11-21", isAvailable: true },
+];
+
+// Payment methods
+export const paymentMethods: PaymentMethod[] = [
+  {
+    id: "pm1",
+    userId: "user1",
+    type: "credit",
+    name: "Visa ending in 4242",
+    last4: "4242",
+    expiryDate: "12/25",
+    isDefault: true
+  },
+  {
+    id: "pm2",
+    userId: "user1",
+    type: "paypal",
+    name: "PayPal - john.smith@example.com",
+    isDefault: false
+  },
+  {
+    id: "pm3",
+    userId: "user1",
+    type: "insurance",
+    name: "Blue Cross Blue Shield",
+    isDefault: false
+  }
+];
+
+// Get time slots for a specific doctor and date
+export const getTimeSlotsByDoctorAndDate = (doctorId: string, date: string): TimeSlot[] => {
+  // Generate current hour and add 1 to start from next hour
+  const currentHour = new Date().getHours();
+  const currentDate = new Date().toISOString().split('T')[0];
+  
+  // Generate time slots from 8 AM to 8 PM
+  const slots: TimeSlot[] = [];
+  
+  // For demo purposes, create 10 slots with most being available
+  for (let i = 8; i <= 18; i++) {
+    // Format time as HH:00 AM/PM
+    const hour = i > 12 ? i - 12 : i;
+    const ampm = i >= 12 ? 'PM' : 'AM';
+    const time = `${hour}:00 ${ampm}`;
+    
+    // Make slots in the past unavailable
+    const isAvailable = date > currentDate || (date === currentDate && i > currentHour);
+    
+    slots.push({
+      id: `${doctorId}-${date}-${i}`,
+      doctorId,
+      date,
+      time,
+      isAvailable,
+    });
+  }
+  
+  return slots;
 };
 
-export const getDoctorById = (id: string) => {
-  const doctors = getAllDoctors();
-  return doctors.find(doctor => doctor.id === id);
+// Get appointments for a specific user
+export const getUserAppointments = (userId: string): Appointment[] => {
+  return appointments.filter(apt => apt.patientId === userId);
 };
 
-export const getUserAppointments = (userId: string) => {
-  // In a real app, this would come from an API call to the backend
-  return [
-    {
-      id: "appt1",
-      doctorId: "doctor1",
-      patientId: userId,
-      date: "2024-08-15",
-      time: "10:00 AM",
-      type: "In-person",
-      reason: "Annual checkup",
-      status: "confirmed",
-    },
-    {
-      id: "appt2",
-      doctorId: "doctor2",
-      patientId: userId,
-      date: "2024-08-20",
-      time: "02:30 PM",
-      type: "Virtual",
-      reason: "Skin rash",
-      status: "pending",
-    },
-    {
-      id: "appt3",
-      doctorId: "doctor3",
-      patientId: userId,
-      date: "2024-09-01",
-      time: "11:15 AM",
-      type: "In-person",
-      reason: "Vaccination",
-      status: "completed",
-    },
-    {
-      id: "appt4",
-      doctorId: "doctor4",
-      patientId: userId,
-      date: "2024-09-10",
-      time: "09:45 AM",
-      type: "Virtual",
-      reason: "Headaches",
-      status: "cancelled",
-    },
-  ];
+// Get messages for a conversation between two users
+export const getConversationMessages = (user1: string, user2: string): Message[] => {
+  return messages.filter(
+    msg => (msg.senderId === user1 && msg.receiverId === user2) || 
+           (msg.senderId === user2 && msg.receiverId === user1)
+  ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 };
 
-export const getConversationMessages = (userId: string, doctorId: string) => {
-  // In a real app, this would come from an API call to the backend
-  return [
-    {
-      id: "msg1",
-      senderId: doctorId,
-      receiverId: userId,
-      content: "Hello! How can I help you today?",
-      timestamp: "2024-08-10T09:00:00",
-      read: true,
-    },
-    {
-      id: "msg2",
-      senderId: userId,
-      receiverId: doctorId,
-      content: "I've been having headaches for the past few days.",
-      timestamp: "2024-08-10T09:05:00",
-      read: true,
-    },
-    {
-      id: "msg3",
-      senderId: doctorId,
-      receiverId: userId,
-      content: "I see. Can you describe the pain?",
-      timestamp: "2024-08-10T09:10:00",
-      read: false,
-    },
-  ];
+// Get user notifications
+export const getUserNotifications = (userId: string): Notification[] => {
+  return notifications.filter(notif => notif.userId === userId)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 };
 
-export const getAllUsers = () => {
-  // In a real app, this would come from an API call to the backend
-  return [
-    {
-      id: "user1",
-      name: "John Smith",
-      email: "john@example.com",
-      phone: "+1234567890",
-      avatar: "/placeholder.svg",
-      role: "patient"
-    },
-    {
-      id: "user2",
-      name: "Jane Doe",
-      email: "jane@example.com",
-      phone: "+1987654321",
-      avatar: "/placeholder.svg",
-      role: "patient"
-    },
-    {
-      id: "user3",
-      name: "Michael Johnson",
-      email: "michael@example.com",
-      phone: "+1122334455",
-      avatar: "/placeholder.svg",
-      role: "patient"
-    },
-    {
-      id: "user4",
-      name: "Sarah Williams",
-      email: "sarah@example.com",
-      phone: "+1555666777",
-      avatar: "/placeholder.svg",
-      role: "patient"
-    },
-    {
-      id: "doctor1",
-      name: "Dr. Robert Chen",
-      email: "robert@hospital.com",
-      phone: "+1999888777",
-      avatar: "/placeholder.svg",
-      role: "doctor"
-    },
-    {
-      id: "admin1",
-      name: "Admin User",
-      email: "admin@hospital.com",
-      phone: "+1000111222",
-      avatar: "/placeholder.svg",
-      role: "admin"
-    }
-  ];
+// Get user payment methods
+export const getUserPaymentMethods = (userId: string): PaymentMethod[] => {
+  return paymentMethods.filter(pm => pm.userId === userId);
+};
+
+// Get doctor by ID
+export const getDoctorById = (id: string): User | undefined => {
+  return users.find(user => user.id === id && user.role === 'doctor');
+};
+
+// Get all doctors
+export const getAllDoctors = (): User[] => {
+  return users.filter(user => user.role === 'doctor');
+};
+
+// Get all users
+export const getAllUsers = (): User[] => {
+  return users;
 };

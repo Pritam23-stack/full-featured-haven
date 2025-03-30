@@ -1,162 +1,187 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { format, addDays } from "date-fns";
-import { Calendar as CalendarIcon, Clock, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { format } from "date-fns";
 import { AppLayout } from "@/components/AppLayout";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { getTimeSlotsByDoctorAndDate } from "@/data/mockUtilities";
+import { getDoctorById, getTimeSlotsByDoctorAndDate } from "@/data/mockData";
+import { useToast } from "@/components/ui/use-toast";
 
-const BookAppointment = () => {
+export default function BookAppointment() {
   const { doctorId } = useParams<{ doctorId: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const doctor = getDoctorById(doctorId || "");
+  
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [appointmentType, setAppointmentType] = useState<'online' | 'in-person'>('online');
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [appointmentType, setAppointmentType] = useState<"online" | "in-person">("online");
   const [reason, setReason] = useState("");
-  const [timeSlots, setTimeSlots] = useState([]);
   
-  useEffect(() => {
-    if (doctorId && date) {
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      const slots = getTimeSlotsByDoctorAndDate(doctorId, formattedDate);
-      setTimeSlots(slots);
-    }
-  }, [doctorId, date]);
+  // Get available time slots for the selected date
+  const timeSlots = date 
+    ? getTimeSlotsByDoctorAndDate(
+        doctorId || "", 
+        format(date, 'yyyy-MM-dd')
+      ) 
+    : [];
   
-  const handleTimeSlotClick = (time: string) => {
-    setSelectedTime(time);
-  };
-  
+  // Handler for booking appointment
   const handleBookAppointment = () => {
-    if (!date || !selectedTime || !doctorId) {
-      alert("Please select a date and time.");
+    if (!date || !selectedTime) {
+      toast({
+        variant: "destructive",
+        title: "Missing information",
+        description: "Please select a date and time for your appointment",
+      });
       return;
     }
     
-    const appointmentData = {
-      doctorId,
-      date: format(date, 'yyyy-MM-dd'),
-      time: selectedTime,
-      type: appointmentType,
-      reason
-    };
-    
-    console.log("Appointment Data:", appointmentData);
-    
-    navigate("/appointment-confirmation");
+    // In a real app, this would call an API to create the appointment
+    // For this demo, we'll just navigate to the confirmation page
+    navigate("/appointment-confirmation", {
+      state: {
+        doctorId,
+        date: format(date, 'yyyy-MM-dd'),
+        time: selectedTime,
+        type: appointmentType,
+        reason,
+      }
+    });
   };
+  
+  if (!doctor) {
+    return (
+      <AppLayout title="Book Appointment">
+        <div className="p-4 text-center">
+          <p>Doctor not found</p>
+          <Button 
+            onClick={() => navigate("/doctors")} 
+            className="mt-4"
+          >
+            Back to Doctors
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
   
   return (
     <AppLayout title="Book Appointment">
-      <div className="container max-w-2xl mx-auto py-10">
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-2">
-            Book an Appointment
-          </h2>
-          <p className="text-gray-500">
-            Choose a date and time for your appointment with Dr. Smith.
-          </p>
-        </div>
-        
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold mb-4">
-            Select Date
-          </h3>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-[240px] justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="center" side="bottom">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                disabled={(date) =>
-                  date < addDays(new Date(), 0)
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold mb-4">
-            Select Time
-          </h3>
-          <div className="grid grid-cols-3 gap-4">
-            {timeSlots.map((slot) => (
-              <Button
-                key={slot.id}
-                variant={selectedTime === slot.time ? "secondary" : "outline"}
-                onClick={() => handleTimeSlotClick(slot.time)}
-                disabled={!slot.isAvailable}
-              >
-                {slot.time}
-                {!slot.isAvailable && (
-                  <Badge className="ml-2">Booked</Badge>
-                )}
-              </Button>
-            ))}
+      {/* Doctor info */}
+      <div className="bg-white p-4 border-b">
+        <div className="flex items-center">
+          <Avatar className="h-16 w-16">
+            <AvatarImage src={doctor.avatar} alt={doctor.name} />
+            <AvatarFallback>{doctor.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          
+          <div className="ml-3">
+            <h2 className="font-semibold">{doctor.name}</h2>
+            <p className="text-gray-500">{doctor.specialization}</p>
+            <p className="text-sm text-gray-500">{doctor.experience} experience</p>
           </div>
         </div>
-        
+      </div>
+      
+      <div className="p-4">
+        {/* Appointment type selection */}
         <div className="mb-6">
-          <h3 className="text-xl font-semibold mb-4">
-            Appointment Type
-          </h3>
+          <h3 className="font-semibold mb-3">Appointment Type</h3>
           <RadioGroup 
-            defaultValue={appointmentType} 
-            onValueChange={(value: 'online' | 'in-person') => setAppointmentType(value)} 
-            className="flex space-x-2"
+            value={appointmentType} 
+            onValueChange={(value) => setAppointmentType(value as "online" | "in-person")}
+            className="flex space-x-3"
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="online" id="r1" />
-              <Label htmlFor="r1">Online</Label>
+            <div className="flex items-center space-x-2 border rounded-lg p-3 flex-1">
+              <RadioGroupItem value="online" id="online" />
+              <Label htmlFor="online" className="cursor-pointer">Online</Label>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="in-person" id="r2" />
-              <Label htmlFor="r2">In-Person</Label>
+            <div className="flex items-center space-x-2 border rounded-lg p-3 flex-1">
+              <RadioGroupItem value="in-person" id="in-person" />
+              <Label htmlFor="in-person" className="cursor-pointer">In-person</Label>
             </div>
           </RadioGroup>
         </div>
         
+        {/* Calendar for date selection */}
         <div className="mb-6">
-          <h3 className="text-xl font-semibold mb-4">
-            Reason for Appointment
-          </h3>
-          <Textarea 
-            placeholder="Describe your symptoms or reason for the appointment..."
+          <h3 className="font-semibold mb-3">Select Date</h3>
+          <div className="border rounded-lg overflow-hidden">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              className="rounded-md border shadow-sm p-0"
+              disabled={{ before: new Date() }}
+            />
+          </div>
+        </div>
+        
+        {/* Time slots */}
+        <div className="mb-6">
+          <h3 className="font-semibold mb-3">Available Time Slots</h3>
+          
+          {date ? (
+            timeSlots.length > 0 ? (
+              <div className="grid grid-cols-3 gap-3">
+                {timeSlots.map(slot => (
+                  <button
+                    key={slot.id}
+                    disabled={!slot.isAvailable}
+                    className={`
+                      py-3 px-2 rounded-lg text-center
+                      ${!slot.isAvailable ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 
+                      selectedTime === slot.time ? 'bg-primary text-white' : 'border'}
+                    `}
+                    onClick={() => setSelectedTime(slot.time)}
+                  >
+                    {slot.time}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 py-4">
+                No slots available for the selected date
+              </p>
+            )
+          ) : (
+            <p className="text-center text-gray-500 py-4">
+              Please select a date to see available slots
+            </p>
+          )}
+        </div>
+        
+        {/* Visit reason */}
+        <div className="mb-8">
+          <h3 className="font-semibold mb-3">Reason for Visit</h3>
+          <Textarea
+            placeholder="Briefly describe your symptoms or reason for appointment"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
+            className="min-h-[100px]"
           />
         </div>
         
-        <div>
-          <Button className="w-full" onClick={handleBookAppointment}>
-            Book Appointment
-          </Button>
-        </div>
+        {/* Book button */}
+        <Button 
+          className="w-full py-6"
+          disabled={!date || !selectedTime}
+          onClick={handleBookAppointment}
+        >
+          Continue to Payment
+        </Button>
       </div>
     </AppLayout>
   );
-};
-
-export default BookAppointment;
+}

@@ -11,14 +11,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getUserAppointments, getDoctorById } from "@/data/mockData";
 import { Appointment } from "@/types";
 
-// Helper function to safely cast status string to the correct type
-const castStatus = (status: string): "pending" | "confirmed" | "completed" | "cancelled" => {
-  if (status === "pending" || status === "confirmed" || status === "completed" || status === "cancelled") {
-    return status;
-  }
-  return "pending"; // Default fallback
-};
-
 export default function Appointments() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -85,9 +77,8 @@ export default function Appointments() {
     }
   };
   
-  const getStatusBadge = (status: string) => {
-    const safeStatus = castStatus(status);
-    switch (safeStatus) {
+  const getStatusBadge = (status: Appointment["status"]) => {
+    switch (status) {
       case "confirmed":
         return <Badge className="bg-green-100 text-green-800">Confirmed</Badge>;
       case "pending":
@@ -118,12 +109,6 @@ export default function Appointments() {
               {appointments.map(apt => {
                 const doctor = getDoctorById(apt.doctorId);
                 if (!doctor) return null;
-
-                // Use specialty as fallback for specialization
-                const doctorSpecialization = doctor.specialty || "";
-                
-                // Access paymentStatus safely
-                const paymentStatus = (apt as any).paymentStatus || "completed";
                 
                 return (
                   <div key={apt.id} className="border rounded-lg overflow-hidden bg-white">
@@ -136,7 +121,7 @@ export default function Appointments() {
                         
                         <div className="ml-3">
                           <h3 className="font-medium">{doctor.name}</h3>
-                          <p className="text-sm text-gray-500">{doctorSpecialization}</p>
+                          <p className="text-sm text-gray-500">{doctor.specialization}</p>
                         </div>
                         
                         <div className="ml-auto">
@@ -181,7 +166,7 @@ export default function Appointments() {
                           Message
                         </Button>
                         
-                        {apt.status === "pending" && paymentStatus === "pending" && (
+                        {apt.status === "pending" && apt.paymentStatus === "pending" && (
                           <Button
                             variant="default"
                             className="flex-1"
@@ -213,9 +198,6 @@ export default function Appointments() {
                 const doctor = getDoctorById(apt.doctorId);
                 if (!doctor) return null;
                 
-                // Use specialty as fallback for specialization
-                const doctorSpecialization = doctor.specialty || "";
-                
                 return (
                   <div key={apt.id} className="border rounded-lg overflow-hidden bg-white">
                     <div className="p-4">
@@ -227,7 +209,7 @@ export default function Appointments() {
                         
                         <div className="ml-3">
                           <h3 className="font-medium">{doctor.name}</h3>
-                          <p className="text-sm text-gray-500">{doctorSpecialization}</p>
+                          <p className="text-sm text-gray-500">{doctor.specialization}</p>
                         </div>
                         
                         <div className="ml-auto">
@@ -281,9 +263,6 @@ export default function Appointments() {
                 const doctor = getDoctorById(apt.doctorId);
                 if (!doctor) return null;
                 
-                // Use specialty as fallback for specialization
-                const doctorSpecialization = doctor.specialty || "";
-                
                 return (
                   <div key={apt.id} className="border rounded-lg overflow-hidden bg-white">
                     <div className="p-4">
@@ -295,7 +274,7 @@ export default function Appointments() {
                         
                         <div className="ml-3">
                           <h3 className="font-medium">{doctor.name}</h3>
-                          <p className="text-sm text-gray-500">{doctorSpecialization}</p>
+                          <p className="text-sm text-gray-500">{doctor.specialization}</p>
                         </div>
                         
                         <div className="ml-auto">

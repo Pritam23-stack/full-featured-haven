@@ -7,14 +7,11 @@ export interface User {
   avatar?: string;
   role: 'patient' | 'doctor' | 'admin';
   specialization?: string;
-  specialty?: string;
+  experience?: string;
   rating?: number;
   reviews?: number;
-  experience?: string;
-  bio?: string;
+  about?: string;
   address?: string;
-  location?: string;
-  availability?: string;
 }
 
 export interface Appointment {
@@ -82,24 +79,4 @@ export interface DoctorSpecialization {
   id: string;
   name: string;
   icon: string;
-}
-
-// Message interface for the AI Assistant
-export interface ChatMessage {
-  id: string;
-  content: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
-}
-
-// Doctor search result interface
-export interface DoctorSearchResult {
-  id?: string; // Adding optional id property
-  name: string;
-  specialty: string;
-  address: string;
-  phone?: string;
-  website?: string;
-  rating?: string;
-  distance?: string;
 }

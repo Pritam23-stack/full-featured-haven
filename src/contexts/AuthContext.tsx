@@ -37,8 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: currentSession.user.email || '',
             phone: currentSession.user.phone || currentSession.user.user_metadata.phone || '',
             avatar: currentSession.user.user_metadata.avatar_url || '',
-            role: 'patient',
-            address: currentSession.user.user_metadata.address,
+            role: currentSession.user.user_metadata.role || 'patient', // Add the role with default value
           };
           setUser(appUser);
         } else {
@@ -59,8 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: currentSession.user.email || '',
           phone: currentSession.user.phone || currentSession.user.user_metadata.phone || '',
           avatar: currentSession.user.user_metadata.avatar_url || '',
-          role: 'patient',
-          address: currentSession.user.user_metadata.address,
+          role: currentSession.user.user_metadata.role || 'patient', // Add the role with default value
         };
         setUser(appUser);
       }
@@ -104,7 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             name,
             phone,
-            role: 'patient',
           }
         }
       });

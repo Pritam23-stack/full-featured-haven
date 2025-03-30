@@ -1,23 +1,24 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusCircle, CreditCard, Trash2, AlertCircle } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/components/ui/use-toast";
-import { getUserPaymentMethods } from "@/data/mockUtilities";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { Plus, CreditCard, Trash2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { getUserPaymentMethods } from "@/data/mockData";
 
-const PaymentMethods = () => {
+export default function PaymentMethods() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -112,7 +113,7 @@ const PaymentMethods = () => {
           className="w-full flex items-center justify-center py-6"
           onClick={() => setOpenDialog(true)}
         >
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 h-4 w-4" />
           Add New Payment Method
         </Button>
         
@@ -175,6 +176,4 @@ const PaymentMethods = () => {
       </div>
     </AppLayout>
   );
-};
-
-export default PaymentMethods;
+}
